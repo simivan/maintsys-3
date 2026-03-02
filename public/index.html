@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EMS – Evidencija opreme</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN STRANICA
+══════════════════════════════════════════════════════════ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>EMS</h1>
+      <p>Evidencija i upravljanje tehničkom opremom</p>
+    </div>
+    <div class="login-error" id="loginErr"></div>
+    <div class="login-field">
+      <label>Korisničko ime</label>
+      <input type="text" id="loginUser" placeholder="korisnicko_ime" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Lozinka</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="loginBtn">Prijavite se</button>
+    <div class="login-hints">
+      <p>Testni nalozi</p>
+      <div class="hint-grid">
+        <div class="hint-item"><strong>admin</strong> / admin123</div>
+        <div class="hint-item"><strong>menadzer</strong> / menadzer123</div>
+        <div class="hint-item"><strong>operater</strong> / operater123</div>
+        <div class="hint-item"><strong>gost</strong> / gost123</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APLIKACIJA
+══════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="name">EMS – Evidencija opreme</div>
+      <div class="ver" id="tbVer">Verzija 2.1</div>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-right">
+      <div id="tbAdminBtn" style="display:none">
+        <button class="tb-btn accent" id="btnAdmin">⚙ Admin panel</button>
+      </div>
+      <div id="tbUser" class="flex items-center gap-2"></div>
+      <button class="tb-btn danger" id="btnLogout">Odjava</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-head"><h3>Oprema</h3></div>
+      <div class="sb-search">
+        <input type="text" id="sbSearch" placeholder="Pretraži opremu...">
+      </div>
+      <div class="sb-main" id="sbMain">
+        <div class="empty-state">Učitavanje...</div>
+      </div>
+      <div class="sb-otpisana" id="sbOtpisana" style="display:none">
+        <div class="sb-ot-hdr">
+          <span>📦</span>
+          <span class="sb-ot-title">Otpisana oprema</span>
+          <span class="sb-ot-badge" id="sbOtBadge">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content">
+      <div class="empty-state" style="margin:auto">Učitavanje...</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DIALOGS
+══════════════════════════════════════════════════════════ -->
+
+<!-- Ažuriranje brojača -->
+<div class="overlay" id="dlgCounter">
+  <div class="dlg">
+    <div class="dlg-hdr">
+      <div class="dlg-title" id="dlgCntTitle">Ažuriranje brojača</div>
+      <button class="dlg-x" data-close="dlgCounter">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-info" id="dlgCntInfo"></div>
+      <div class="frow">
+        <div class="field"><label>Trenutna vrednost</label><input type="text" id="dlgCntCur" readonly></div>
+        <div class="field"><label>Nova vrednost</label><input type="number" id="dlgCntVal" step="any"></div>
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgCounter">Odustani</button>
+      <button class="db ok" id="btnSubmitCounter">Potvrdi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Unos kontrole -->
+<div class="overlay" id="dlgCtrl">
+  <div class="dlg">
+    <div class="dlg-hdr">
+      <div class="dlg-title" id="dlgCtrlTitle">Unos kontrole</div>
+      <button class="dlg-x" data-close="dlgCtrl">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-info" id="dlgCtrlInfo">Unesite vrednost i potvrdite rezultat kontrole.</div>
+      <div class="field" id="dlgCtrlValWrap">
+        <label id="dlgCtrlValLbl">Vrednost (radni sati)</label>
+        <input type="number" id="dlgCtrlVal" step="any">
+      </div>
+      <div class="field">
+        <label>Napomena (opcionalno)</label>
+        <input type="text" id="dlgCtrlNote" placeholder="Opis nalaza...">
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgCtrl">Odustani</button>
+      <button class="db nok" id="btnCtrlNOK">⚠ Potvrdi NOK</button>
+      <button class="db ok"  id="btnCtrlOK">✓ Potvrdi OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOK razlog -->
+<div class="overlay" id="dlgNOK">
+  <div class="dlg">
+    <div class="dlg-hdr">
+      <div class="dlg-title">⚠ Opis problema (NOK)</div>
+      <button class="dlg-x" data-close="dlgNOK">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-info warn">Biće automatski kreiran novi servisni nalog. Opišite problem detaljno.</div>
+      <div class="field">
+        <label>Razlog / opis problema *</label>
+        <textarea id="dlgNOKReason" rows="3" placeholder="Opis problema..."></textarea>
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgNOK">Odustani</button>
+      <button class="db nok" id="btnSubmitNOK">Kreiraj servisni nalog</button>
+    </div>
+  </div>
+</div>
+
+<!-- Promena statusa -->
+<div class="overlay" id="dlgStatus">
+  <div class="dlg">
+    <div class="dlg-hdr">
+      <div class="dlg-title">Promena statusa opreme</div>
+      <button class="dlg-x" data-close="dlgStatus">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-info" id="dlgStatusInfo"></div>
+      <div class="field">
+        <label>Novi status *</label>
+        <select id="dlgStatusSel"></select>
+      </div>
+      <div class="field">
+        <label>Napomena * (obavezno)</label>
+        <textarea id="dlgStatusNote" rows="3" placeholder="Razlog promene statusa..."></textarea>
+      </div>
+      <div class="dlg-info warn" id="dlgStatusWarn" style="display:none">
+        ⚠ Promenom na "Zastoj" automatski se kreira servisni nalog.
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgStatus">Odustani</button>
+      <button class="db ok" id="btnSubmitStatus">Potvrdi promenu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Izmena podataka opreme (dinamičan sadržaj) -->
+<div class="overlay" id="dlgEdit">
+  <div class="dlg" style="max-width:580px">
+    <div class="dlg-hdr">
+      <div class="dlg-title">✏ Izmena podataka</div>
+      <button class="dlg-x" data-close="dlgEdit">✕</button>
+    </div>
+    <div class="dlg-body" id="dlgEditBody"></div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgEdit">Odustani</button>
+      <button class="db ok" id="btnSubmitEdit">Sačuvaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dodaj novu opremu -->
+<div class="overlay" id="dlgAddEq">
+  <div class="dlg" style="max-width:560px">
+    <div class="dlg-hdr">
+      <div class="dlg-title">+ Dodaj novu opremu</div>
+      <button class="dlg-x" data-close="dlgAddEq">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="field"><label>Naziv *</label><input type="text" id="aN" placeholder="Naziv opreme"></div>
+      <div class="frow">
+        <div class="field"><label>Tip opreme</label><select id="aType"></select></div>
+        <div class="field"><label>Lokacija</label><select id="aLoc"></select></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Proizvođač</label><input type="text" id="aMfr"></div>
+        <div class="field"><label>Serijski broj</label><input type="text" id="aSer"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Asset broj</label><input type="text" id="aAsset"></div>
+        <div class="field"><label>Godina proiz. (1900–2100)</label><input type="number" id="aYear" min="1900" max="2100"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Datum nabavke</label><input type="date" id="aPurchase"></div>
+        <div class="field"><label>Početni status</label><select id="aStatus"></select></div>
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgAddEq">Odustani</button>
+      <button class="db ok" id="btnSubmitAddEq">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- Servisni nalog -->
+<div class="overlay" id="dlgSrv">
+  <div class="dlg" style="max-width:520px">
+    <div class="dlg-hdr">
+      <div class="dlg-title" id="dlgSrvTitle">Servisni nalog</div>
+      <button class="dlg-x" data-close="dlgSrv">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="frow">
+        <div class="field"><label>Datum</label><input type="date" id="sDate"></div>
+        <div class="field"><label>Broj naloga</label><input type="text" id="sNum" readonly placeholder="AUTO"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Operater</label><input type="text" id="sOp" readonly></div>
+        <div class="field"><label>Radni sati pri kreiranju</label><input type="number" id="sHrs" step="any"></div>
+      </div>
+      <div class="field"><label>Opis / razlog servisa *</label><textarea id="sNote" rows="3" placeholder="Opišite razlog naloga..."></textarea></div>
+      <div class="frow">
+        <div class="field"><label>Tehničar</label><input type="text" id="sTech" placeholder="Ime tehničara"></div>
+        <div class="field"><label>Status</label>
+          <select id="sStat" id="sStat">
+            <option>Otvoren</option>
+            <option>U obradi</option>
+            <option>Zatvoren</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Rešenje (opcionalno)</label><input type="text" id="sRes" placeholder="Opis urađenog..."></div>
+      <div class="field" id="sCompField" style="display:none"><label>Datum zatvaranja</label><input type="date" id="sComp"></div>
+      <div class="field"><label>Ticket URL (eksterni sistem)</label><input type="url" id="sTicket" placeholder="https://..."></div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgSrv">Odustani</button>
+      <button class="db ok" id="btnSubmitSrv">Sačuvaj nalog</button>
+    </div>
+  </div>
+</div>
+
+<!-- Korisnik (dodaj/izmeni) -->
+<div class="overlay" id="dlgAddUser">
+  <div class="dlg">
+    <div class="dlg-hdr">
+      <div class="dlg-title" id="dlgUserTitle">Dodaj korisnika</div>
+      <button class="dlg-x" data-close="dlgAddUser">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="frow">
+        <div class="field"><label>Korisničko ime *</label><input type="text" id="uUsername" placeholder="ime.prezime"></div>
+        <div class="field"><label>Puno ime *</label><input type="text" id="uFullName" placeholder="Ime Prezime"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Uloga *</label>
+          <select id="uRole">
+            <option value="gost">Gost</option>
+            <option value="operater" selected>Operater</option>
+            <option value="menadzer">Menadžer</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+        <div class="field"><label id="uPassLabel">Lozinka *</label><input type="password" id="uPass"></div>
+      </div>
+      <div class="field" id="uActiveField" style="display:none">
+        <label>Status naloga</label>
+        <select id="uActive">
+          <option value="1">Aktivan</option>
+          <option value="0">Deaktiviran</option>
+        </select>
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgAddUser">Odustani</button>
+      <button class="db ok" id="btnSubmitUser">Sačuvaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dodaj tip / lokaciju -->
+<div class="overlay" id="dlgAddItem">
+  <div class="dlg" style="max-width:420px">
+    <div class="dlg-hdr">
+      <div class="dlg-title" id="dlgAddItemTitle">Dodaj</div>
+      <button class="dlg-x" data-close="dlgAddItem">✕</button>
+    </div>
+    <div class="dlg-body">
+      <div class="field">
+        <label id="dlgAddItemLbl">Naziv *</label>
+        <input type="text" id="dlgAddItemVal">
+      </div>
+    </div>
+    <div class="dlg-ftr">
+      <button class="db cancel" data-close="dlgAddItem">Odustani</button>
+      <button class="db ok" id="btnSubmitAddItem">Sačuvaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     BIG MODALS – Prošireni prikazi
+══════════════════════════════════════════════════════════ -->
+
+<!-- Dnevnik rada (po opremi) -->
+<div class="big-overlay" id="bigLogs">
+  <div class="big-modal">
+    <div class="bm-hdr">
+      <div class="bm-title" id="bigLogsTitle">Dnevnik rada</div>
+      <div class="bm-controls">
+        <span style="font-size:var(--fs-sm);color:var(--sec)">Od:</span>
+        <input type="date" class="date-filter-input" id="logDateFrom">
+        <span style="font-size:var(--fs-sm);color:var(--sec)">Do:</span>
+        <input type="date" class="date-filter-input" id="logDateTo">
+        <button class="lp-btn" id="btnLogFilterReset">Poništi</button>
+        <button class="lp-btn" id="btnLogsExportCSV">⬇ CSV</button>
+        <button class="dlg-x" data-close-big="bigLogs">✕</button>
+      </div>
+    </div>
+    <div class="bm-body" id="bigLogsBody"></div>
+  </div>
+</div>
+
+<!-- Servisni nalozi (po opremi) -->
+<div class="big-overlay" id="bigSrv">
+  <div class="big-modal">
+    <div class="bm-hdr">
+      <div class="bm-title" id="bigSrvTitle">Servisni nalozi</div>
+      <div class="bm-controls">
+        <span style="font-size:var(--fs-sm);color:var(--sec)">Od:</span>
+        <input type="date" class="date-filter-input" id="srvDateFrom">
+        <span style="font-size:var(--fs-sm);color:var(--sec)">Do:</span>
+        <input type="date" class="date-filter-input" id="srvDateTo">
+        <button class="lp-btn" id="btnSrvFilterReset">Poništi</button>
+        <button class="lp-btn" id="btnSrvExportCSV">⬇ CSV</button>
+        <button class="dlg-x" data-close-big="bigSrv">✕</button>
+      </div>
+    </div>
+    <div class="bm-body" id="bigSrvBody"></div>
+  </div>
+</div>
+
+<!-- Svi servisni nalozi (dashboard kartica) -->
+<div class="big-overlay" id="bigAllSrv">
+  <div class="big-modal">
+    <div class="bm-hdr">
+      <div class="bm-title" id="bigAllSrvTitle">Svi servisni nalozi</div>
+      <div class="bm-controls">
+        <button class="dlg-x" data-close-big="bigAllSrv">✕ Zatvori</button>
+      </div>
+    </div>
+    <div class="bm-body" id="bigAllSrvBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     BOOTSTRAP SCRIPT
+══════════════════════════════════════════════════════════ -->
+<script type="module">
+import { state, can } from '/js/state.js';
+import { startApp, bindTopbarEvents } from '/js/app.js';
+import { loginSubmit } from '/js/auth.js';
+import { closeDlg, closeBig } from '/js/utils.js';
+import { renderLogsTable, resetLogFilter, exportLogsCSV, renderSrvTable, resetSrvFilter, exportSrvCSV } from '/js/modals.js';
+import { submitCounter } from '/js/dialogs/counter.js';
+import { submitCtrl, submitNOK } from '/js/dialogs/control.js';
+import { submitStatusChange } from '/js/dialogs/status.js';
+import { submitEdit, submitAddEq } from '/js/dialogs/edit.js';
+import { submitSrv, toggleCompDate } from '/js/dialogs/service-order.js';
+import { submitUser, submitAddItem } from '/js/admin.js';
+
+// ── Global close handlers (delegirani) ────────────────────────────────────────
+document.addEventListener('click', e => {
+  const closeId    = e.target.closest('[data-close]')?.dataset.close;
+  const closeBigId = e.target.closest('[data-close-big]')?.dataset.closeBig;
+  if (closeId)    closeDlg(closeId);
+  if (closeBigId) closeBig(closeBigId);
+});
+
+// Klik van dialoga ga zatvara
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) closeDlg(ov.id); });
+});
+document.querySelectorAll('.big-overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if (e.target === ov) closeBig(ov.id); });
+});
+
+// ── Dialog dugmad ──────────────────────────────────────────────────────────────
+document.getElementById('btnSubmitCounter')?.addEventListener('click', submitCounter);
+document.getElementById('btnCtrlOK')?.addEventListener('click', () => submitCtrl('OK'));
+document.getElementById('btnCtrlNOK')?.addEventListener('click', () => submitCtrl('NOK'));
+document.getElementById('btnSubmitNOK')?.addEventListener('click', submitNOK);
+document.getElementById('btnSubmitStatus')?.addEventListener('click', submitStatusChange);
+document.getElementById('btnSubmitEdit')?.addEventListener('click', submitEdit);
+document.getElementById('btnSubmitAddEq')?.addEventListener('click', submitAddEq);
+document.getElementById('btnSubmitSrv')?.addEventListener('click', submitSrv);
+document.getElementById('btnSubmitUser')?.addEventListener('click', submitUser);
+document.getElementById('btnSubmitAddItem')?.addEventListener('click', submitAddItem);
+
+// ── Servisni nalog – status promjena → completion_date ────────────────────────
+document.getElementById('sStat')?.addEventListener('change', toggleCompDate);
+
+// ── Status dialog – warn ──────────────────────────────────────────────────────
+document.getElementById('dlgStatusSel')?.addEventListener('change', () => {
+  const warn = document.getElementById('dlgStatusWarn');
+  if (warn) warn.style.display = document.getElementById('dlgStatusSel').value === 'Zastoj' ? 'block' : 'none';
+});
+
+// ── Big modals – filtri i CSV ──────────────────────────────────────────────────
+document.getElementById('logDateFrom')?.addEventListener('change', renderLogsTable);
+document.getElementById('logDateTo')?.addEventListener('change',   renderLogsTable);
+document.getElementById('btnLogFilterReset')?.addEventListener('click', resetLogFilter);
+document.getElementById('btnLogsExportCSV')?.addEventListener('click', exportLogsCSV);
+
+document.getElementById('srvDateFrom')?.addEventListener('change', renderSrvTable);
+document.getElementById('srvDateTo')?.addEventListener('change',   renderSrvTable);
+document.getElementById('btnSrvFilterReset')?.addEventListener('click', resetSrvFilter);
+document.getElementById('btnSrvExportCSV')?.addEventListener('click',   exportSrvCSV);
+
+// ── Sidebar otpisana ──────────────────────────────────────────────────────────
+document.getElementById('sbOtpisana')?.addEventListener('click', () => {
+  import('/js/app.js').then(m => m.goOtpisana());
+});
+
+// ── Admin uActive field visibility ────────────────────────────────────────────
+// Prikaži "Status naloga" samo u edit modu – admin.js to kontroliše direktno
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+document.getElementById('loginBtn')?.addEventListener('click', loginSubmit);
+['loginUser','loginPass'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') loginSubmit();
+  });
+});
+
+// ── TOPBAR ────────────────────────────────────────────────────────────────────
+bindTopbarEvents();
+
+// ── AUTO-LOGIN ako token postoji ──────────────────────────────────────────────
+if (state.token && state.user) {
+  startApp().catch(() => {
+    // Token istekao
+    localStorage.removeItem('ems_token');
+    localStorage.removeItem('ems_user');
+  });
+}
+</script>
+
+</body>
+</html>
