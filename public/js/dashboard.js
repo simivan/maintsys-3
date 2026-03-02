@@ -1,8 +1,7 @@
 // public/js/dashboard.js – Dashboard prikaz (kartice + lista opreme)
-import { state, can, isCNGFilter, getEquipCfgById } from './state.js';
-import { esc, fmtNum, statusPillCls, soPillCls, showToast } from './utils.js';
+import { state, can, isCNGFilter } from './state.js';
+import { esc, fmtNum, statusPillCls, soPillCls, openBig } from './utils.js';
 import { api } from './api.js';
-import { openBig } from './utils.js';
 
 export function renderDashboard() {
   const stats  = computeStats(state.allEq);
@@ -56,19 +55,18 @@ export function renderDashboard() {
       </div>
     </div>`;
 
-  // Servisni nalozi klik
   document.getElementById('dashSrvCard')?.addEventListener('click', openAllSrvsModal);
 
-  // Status klik na pilule
   document.querySelectorAll('.status-pill-btn').forEach(el => {
     el.addEventListener('click', e => {
       e.stopPropagation();
       const { eid, status, tid } = el.dataset;
-      import('./dialogs/status.js').then(m => m.openStatusDialog(parseInt(eid), status, parseInt(tid)));
+      import('./dialogs/status.js').then(m =>
+        m.openStatusDialog(parseInt(eid), status, parseInt(tid))
+      );
     });
   });
 
-  // Redovi klik → otvori opremu
   document.querySelectorAll('.eq-row').forEach(el => {
     el.addEventListener('click', () => {
       import('./app.js').then(m => m.goEquipment(parseInt(el.dataset.eid)));
@@ -94,7 +92,6 @@ function renderFiltersBar() {
     </div>`;
 }
 
-// Registruje filtere – poziva se nakon renderDashboard
 export function bindFilters() {
   document.getElementById('fType')?.addEventListener('change', async e => {
     state.filterTypeId = e.target.value;
@@ -163,11 +160,11 @@ function renderCNGTable() {
       </tr></thead>
       <tbody>
         ${state.allEq.map(e => {
-          const hrs  = parseFloat(e.radni_sati)       || 0;
-          const ns   = parseFloat(e.next_service_val) || 0;
-          const hrsCls = !ns ? 'hrs-ok'
-            : hrs >= ns          ? 'hrs-bad'
-            : hrs >= ns * 0.85   ? 'hrs-warn'
+          const hrs    = parseFloat(e.radni_sati)       || 0;
+          const ns     = parseFloat(e.next_service_val) || 0;
+          const hrsCls = !ns       ? 'hrs-ok'
+            : hrs >= ns            ? 'hrs-bad'
+            : hrs >= ns * 0.85     ? 'hrs-warn'
             : 'hrs-ok';
           return `
           <tr class="eq-row" data-eid="${e.id}">
@@ -201,24 +198,24 @@ function statusPillHtml(e) {
 
 function soPillsHtml(e) {
   let h = '';
-  if (e.so_open   > 0) h += `<span class="pill pill-so-open"   style="margin-right:3px">${e.so_open} Otv.</span>`;
+  if (e.so_open   > 0) h += `<span class="pill pill-so-open" style="margin-right:3px">${e.so_open} Otv.</span>`;
   if (e.so_inprog > 0) h += `<span class="pill pill-so-inprog">${e.so_inprog} U obradi</span>`;
   return h || `<span style="color:var(--dim);font-size:var(--fs-xs)">—</span>`;
 }
 
 function computeStats(eqs) {
   return {
-    total:    eqs.length,
-    active:   eqs.filter(e => e.status === 'U radu').length,
-    zastoj:   eqs.filter(e => e.status === 'Zastoj').length,
-    neaktivan:eqs.filter(e => e.status === 'Neaktivan').length,
-    soOpen:   eqs.reduce((s, e) => s + (e.so_open   ?? 0), 0),
-    soInprog: eqs.reduce((s, e) => s + (e.so_inprog ?? 0), 0),
-    soClosed: eqs.reduce((s, e) => s + (e.so_closed ?? 0), 0),
+    total:     eqs.length,
+    active:    eqs.filter(e => e.status === 'U radu').length,
+    zastoj:    eqs.filter(e => e.status === 'Zastoj').length,
+    neaktivan: eqs.filter(e => e.status === 'Neaktivan').length,
+    soOpen:    eqs.reduce((s, e) => s + (e.so_open   ?? 0), 0),
+    soInprog:  eqs.reduce((s, e) => s + (e.so_inprog ?? 0), 0),
+    soClosed:  eqs.reduce((s, e) => s + (e.so_closed ?? 0), 0),
   };
 }
 
-// ─── ALL SERVICE ORDERS MODAL ────────────────────────────────────────────────
+// ─── ALL SERVICE ORDERS MODAL ─────────────────────────────────────────────────
 async function openAllSrvsModal() {
   const params = {};
   if (state.filterTypeId) params.typeId     = state.filterTypeId;
@@ -245,15 +242,15 @@ export function renderAllSrvsTable() {
     return asc ? String(va).localeCompare(vb, 'sr') : String(vb).localeCompare(va, 'sr');
   });
   const cols = [
-    { k:'location_name', l:'Lokacija'  },
-    { k:'eq_name',       l:'Oprema'    },
-    { k:'date',          l:'Datum'     },
-    { k:'order_number',  l:'Br. naloga'},
-    { k:'operator_name', l:'Operater'  },
-    { k:'service_note',  l:'Opis'      },
-    { k:'status',        l:'Status'    },
-    { k:'technician',    l:'Tehničar'  },
-    { k:'ticket_url',    l:'Ticket'    },
+    { k: 'location_name', l: 'Lokacija'   },
+    { k: 'eq_name',       l: 'Oprema'     },
+    { k: 'date',          l: 'Datum'      },
+    { k: 'order_number',  l: 'Br. naloga' },
+    { k: 'operator_name', l: 'Operater'   },
+    { k: 'service_note',  l: 'Opis'       },
+    { k: 'status',        l: 'Status'     },
+    { k: 'technician',    l: 'Tehničar'   },
+    { k: 'ticket_url',    l: 'Ticket'     },
   ];
   const thHtml = cols.map(c => {
     const cls = f === c.k ? (asc ? 'sort-th asc' : 'sort-th desc') : 'sort-th';
@@ -264,23 +261,23 @@ export function renderAllSrvsTable() {
     <table class="mini-tbl">
       <thead><tr>${thHtml}</tr></thead>
       <tbody>
-        ${sorted.length ? sorted.map(s => `
-          <tr class="${can.editSrv() ? 'clickable' : ''}" data-srvid="${s.id}" data-eqid="${s.equipment_id}">
-            <td style="color:var(--sec)">${esc(s.location_name ?? '—')}</td>
-            <td style="font-weight:600">${esc(s.eq_name ?? '—')}</td>
-            <td class="ts">${s.date ?? '—'}</td>
-            <td class="srv-num">${esc(s.order_number)}</td>
-            <td>${esc(s.operator_name ?? '—')}</td>
-            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.service_note ?? '—')}</td>
-            <td><span class="pill ${soPillCls(s.status)}">${esc(s.status)}</span></td>
-            <td>${esc(s.technician ?? '—')}</td>
-            <td>${s.ticket_url ? `<a class="ticket-link" href="${esc(s.ticket_url)}" target="_blank">🔗 Link</a>` : '—'}</td>
-          </tr>`).join('')
-          : '<tr><td colspan="9" class="empty-state">Nema servisnih naloga</td></tr>'}
+        ${sorted.length
+          ? sorted.map(s => `
+            <tr class="${can.editSrv() ? 'clickable' : ''}" data-srvid="${s.id}" data-eqid="${s.equipment_id}">
+              <td style="color:var(--sec)">${esc(s.location_name ?? '—')}</td>
+              <td style="font-weight:600">${esc(s.eq_name ?? '—')}</td>
+              <td class="ts">${s.date ?? '—'}</td>
+              <td class="srv-num">${esc(s.order_number)}</td>
+              <td>${esc(s.operator_name ?? '—')}</td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.service_note ?? '—')}</td>
+              <td><span class="pill ${soPillCls(s.status)}">${esc(s.status)}</span></td>
+              <td>${esc(s.technician ?? '—')}</td>
+              <td>${s.ticket_url ? `<a class="ticket-link" href="${esc(s.ticket_url)}" target="_blank">🔗 Link</a>` : '—'}</td>
+            </tr>`).join('')
+          : '<tr><td colspan="9" class="empty-state">Nema servisnih naloga.</td></tr>'}
       </tbody>
     </table>`;
 
-  // Sort klik
   document.querySelectorAll('#bigAllSrvBody .sort-th').forEach(el => {
     el.addEventListener('click', () => {
       const col = el.dataset.col;
@@ -289,17 +286,15 @@ export function renderAllSrvsTable() {
       renderAllSrvsTable();
     });
   });
-  // Row klik za edit
+
   if (can.editSrv()) {
     document.querySelectorAll('#bigAllSrvBody tr.clickable').forEach(el => {
       el.addEventListener('click', () => {
         import('./dialogs/service-order.js').then(m => {
-          state.equipId = parseInt(el.dataset.eqid);
-          const srv = state.allSrvs.find(s => s.id === parseInt(el.dataset.srvid));
-          if (srv) {
-            state.services = state.allSrvs.filter(s => s.equipment_id === state.equipId);
-            m.openEditSrvDialog(parseInt(el.dataset.srvid));
-          }
+          state.equipId  = parseInt(el.dataset.eqid);
+          state.services = state.allSrvs.filter(s => s.equipment_id === state.equipId);
+          const srvId    = parseInt(el.dataset.srvid);
+          if (state.services.find(s => s.id === srvId)) m.openEditSrvDialog(srvId);
         });
       });
     });

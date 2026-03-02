@@ -1,4 +1,4 @@
-# EMS – Evidencija i upravljanje tehničkom opremom
+# MAINTSYS – Maintenance Management System
 
 **Verzija 2.1** | Node.js + Express + MariaDB | Single-Page Application
 
@@ -7,7 +7,7 @@
 ## Struktura projekta
 
 ```
-ems-final/
+maintsys/
 ├── server.js                  ← Ulaz, routing, pokretanje
 ├── package.json
 ├── .env.example               ← Kopirati u .env
@@ -53,7 +53,7 @@ ems-final/
         ├── utils.js           ← esc, fmtNum, fmtDate, showToast, ...
         ├── api.js             ← Sve API pozive prema backendu
         ├── app.js             ← Orkestrater: startApp, navigacija
-        ├── auth.js            ← loginSubmit, performLogout
+        ├── auth.js            ← loginSubmit (sa error handling), performLogout
         ├── sidebar.js         ← Accordion sidebar sa opremom
         ├── dashboard.js       ← Dashboard kartice + lista opreme
         ├── equipment.js       ← Detalji opreme (CNG/standard/rezervni)
@@ -75,9 +75,9 @@ ems-final/
 ### 1. Baza podataka (MariaDB / MySQL)
 
 ```sql
-CREATE DATABASE ems_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ems_user'@'localhost' IDENTIFIED BY 'ems_password';
-GRANT ALL PRIVILEGES ON ems_db.* TO 'ems_user'@'localhost';
+CREATE DATABASE maintsys_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'maintsys_user'@'localhost' IDENTIFIED BY 'maintsys_pass';
+GRANT ALL PRIVILEGES ON maintsys_db.* TO 'maintsys_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -91,9 +91,9 @@ cp .env.example .env
 `.env` fajl:
 ```
 DB_HOST=localhost
-DB_USER=ems_user
-DB_PASS=ems_password
-DB_NAME=ems_db
+DB_USER=maintsys_user
+DB_PASS=maintsys_pass
+DB_NAME=maintsys_db
 DB_PORT=3306
 PORT=3000
 ```
@@ -105,7 +105,7 @@ npm install
 npm start
 ```
 
-Aplikacija kreira šemu i ubacuje demo podatke automatski pri prvom pokretanju.  
+Aplikacija automatski kreira šemu i ubacuje demo podatke pri prvom pokretanju.
 Pristup: **http://localhost:3000**
 
 ---
@@ -154,29 +154,26 @@ Tipovi bez sopstvenog konfiga automatski koriste `default-template.js`.
 POST   /api/auth/login
 POST   /api/auth/logout
 
-GET    /api/equipment                    # lista (filter: typeId, locationId, otpisana)
-GET    /api/equipment/:id                # detalji jedne opreme
-POST   /api/equipment                    # nova oprema (admin)
-PUT    /api/equipment/:id                # izmena podataka (menadžer+)
-DELETE /api/equipment/:id                # brisanje (admin)
-PUT    /api/equipment/:id/status         # promena statusa
+GET    /api/equipment                     # lista (filter: typeId, locationId, otpisana)
+GET    /api/equipment/:id                 # detalji jedne opreme
+POST   /api/equipment                     # nova oprema (admin)
+PUT    /api/equipment/:id                 # izmena podataka (menadžer+)
+DELETE /api/equipment/:id                 # brisanje (admin)
+PUT    /api/equipment/:id/status          # promena statusa
 
-PUT    /api/equipment/:id/counters/:cid  # ažuriranje brojača
-PUT    /api/equipment/:id/controls/:cid  # unos kontrolne operacije
-GET    /api/equipment/:id/logs           # dnevnik rada
-GET    /api/equipment/:id/service-orders # servisni nalozi po opremi
-POST   /api/equipment/:id/service-orders # novi nalog
+PUT    /api/equipment/:id/counters/:cid   # ažuriranje brojača
+PUT    /api/equipment/:id/controls/:cid   # unos kontrolne operacije
+GET    /api/equipment/:id/logs            # dnevnik rada
+GET    /api/equipment/:id/service-orders  # servisni nalozi po opremi
+POST   /api/equipment/:id/service-orders  # novi nalog
 
-GET    /api/service-orders               # svi nalozi (filter: typeId, locationId)
-PUT    /api/service-orders/:id           # izmena naloga
-DELETE /api/service-orders/:id           # brisanje (admin)
+GET    /api/service-orders                # svi nalozi (filter: typeId, locationId)
+PUT    /api/service-orders/:id            # izmena naloga
+DELETE /api/service-orders/:id            # brisanje (admin)
 
-GET    /api/types         POST /api/types
-PUT    /api/types/:id     DELETE /api/types/:id
-GET    /api/locations     POST /api/locations
-PUT    /api/locations/:id DELETE /api/locations/:id
-GET    /api/users         POST /api/users
-PUT    /api/users/:id     DELETE /api/users/:id
+GET/POST/PUT/DELETE  /api/types
+GET/POST/PUT/DELETE  /api/locations
+GET/POST/PUT/DELETE  /api/users
 
 GET    /api/configs        # konfigi svih tipova (za frontend)
 GET    /api/version

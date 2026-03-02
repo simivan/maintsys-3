@@ -1,10 +1,10 @@
-// public/js/state.js – Centralni state aplikacije (reaktivni store)
-// Sve promene stanja se vrše ISKLJUČIVO kroz exported setter funkcije.
+// public/js/state.js – Centralni state aplikacije
+// localStorage ključevi koriste prefiks 'maintsys_'
 
 export const state = {
   // Auth
-  token: localStorage.getItem('ems_token'),
-  user:  JSON.parse(localStorage.getItem('ems_user') || 'null'),
+  token: localStorage.getItem('maintsys_token'),
+  user:  JSON.parse(localStorage.getItem('maintsys_user') || 'null'),
 
   // Reference data
   types:   [],
@@ -36,14 +36,14 @@ export const state = {
   users:    [],
 
   // Sort state za big modals
-  logSort:    { field: 'id',   asc: false },
-  srvSort:    { field: 'id',   asc: false },
-  allSrvSort: { field: 'id',   asc: false },
+  logSort:    { field: 'id', asc: false },
+  srvSort:    { field: 'id', asc: false },
+  allSrvSort: { field: 'id', asc: false },
 
   // Pending dialog data
-  pendingCounter:  null,   // { counterId, name, value, unit }
-  pendingControl:  null,   // { controlId, name, unit, opH }
-  pendingCtrlData: null,   // { value, note } – privremeno dok čekamo NOK potvrdu
+  pendingCounter:  null,   // { counterId, name, currentVal, unit }
+  pendingControl:  null,   // { controlId, name, opH, intervalUnit }
+  pendingCtrlData: null,   // { value, notes } – privremeno dok čekamo NOK potvrdu
   pendingStatus:   null,   // { equipId, currentStatus, typeId }
   editSrvId:       null,
   editUserId:      null,
@@ -92,8 +92,8 @@ export function isEquipFrozen(eq) {
   const cfg = getEquipCfg(eq?.type_name ?? '');
   const opt = cfg.statusOptions?.find(o => o.value === eq?.status);
   return {
-    all:      opt?.freezeAll      ?? false,
-    controls: opt?.freezeAll || opt?.freezeControls ?? false,
-    counters: opt?.freezeAll || opt?.freezeCounters ?? false,
+    all:      opt?.freezeAll ?? false,
+    controls: (opt?.freezeAll || opt?.freezeControls) ?? false,
+    counters: (opt?.freezeAll || opt?.freezeCounters) ?? false,
   };
 }

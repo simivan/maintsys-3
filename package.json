@@ -1,7 +1,7 @@
 {
-  "name": "ems-evidencija-opreme",
+  "name": "maintsys",
   "version": "2.1.0",
-  "description": "EMS – Evidencija i upravljanje tehničkom opremom",
+  "description": "MAINTSYS – Maintenance system",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

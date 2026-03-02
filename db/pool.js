@@ -12,9 +12,9 @@ try { require('fs').readFileSync('.env').toString().split('\n').forEach(line => 
 const pool = mysql.createPool({
   host:             process.env.DB_HOST || 'localhost',
   port:             parseInt(process.env.DB_PORT) || 3306,
-  user:             process.env.DB_USER || 'ems_user',
-  password:         process.env.DB_PASS || 'ems_password',
-  database:         process.env.DB_NAME || 'ems_db',
+  user:             process.env.DB_USER || 'maintsys_user',
+  password:         process.env.DB_PASS || 'maintsys_pass',
+  database:         process.env.DB_NAME || 'maintsys_db',
   waitForConnections: true,
   connectionLimit:  15,
   queueLimit:       0,

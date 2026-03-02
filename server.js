@@ -1,6 +1,6 @@
 'use strict';
 /**
- * server.js – EMS Evidencija opreme v2.1
+ * server.js – MAINTSYS Maintenance System v2.1
  */
 
 const express = require('express');
@@ -72,7 +72,7 @@ async function start(){
   await seed();
   const PORT=parseInt(process.env.PORT)||3000;
   app.listen(PORT,()=>{
-    console.log(`\n  EMS v${APP_VERSION}  →  http://localhost:${PORT}`);
+    console.log(`\n  MAINTSYS v${APP_VERSION}  →  http://localhost:${PORT}`);
     console.log('  admin/admin123  menadzer/menadzer123  operater/operater123  gost/gost123\n');
   });
 }

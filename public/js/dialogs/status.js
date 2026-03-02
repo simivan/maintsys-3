@@ -1,4 +1,4 @@
-// public/js/dialogs/status.js – Dialog za promenu statusa opreme
+// public/js/dialogs/status.js
 import { state, getEquipCfgById } from '../state.js';
 import { api } from '../api.js';
 import { showToast, openDlg, closeDlg, esc } from '../utils.js';
@@ -8,19 +8,28 @@ export function openStatusDialog(equipId, currentStatus, typeId) {
   const cfg     = getEquipCfgById(typeId);
   const options = cfg.statusOptions ?? [];
 
-  document.getElementById('dlgStatusTitle').textContent = 'Promena statusa';
-  document.getElementById('dlgStatusInfo').textContent  =
+  document.getElementById('dlgStatusInfo').textContent =
     `Trenutni status: ${currentStatus}. Odaberite novi status i unesite obaveznu napomenu.`;
 
   const sel = document.getElementById('dlgStatusSel');
+  // Fix: operator precedence - zagrade oko Otpisan uslova
   sel.innerHTML = options
-    .filter(o => o.value !== currentStatus && o.value !== 'Otpisan' || state.user?.role === 'admin')
+    .filter(o => o.value !== currentStatus && (o.value !== 'Otpisan' || state.user?.role === 'admin'))
     .map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`)
     .join('');
 
+  if (!sel.options.length) {
+    showToast('Nema dostupnih promena statusa za ovu opremu.', 'err');
+    return;
+  }
+
   document.getElementById('dlgStatusNote').value = '';
   updateStatusWarn();
-  sel.addEventListener('change', updateStatusWarn);
+
+  // Kloniranjem uklanjamo prethodne event listenere
+  const fresh = sel.cloneNode(true);
+  sel.parentNode.replaceChild(fresh, sel);
+  document.getElementById('dlgStatusSel').addEventListener('change', updateStatusWarn);
 
   openDlg('dlgStatus');
   setTimeout(() => document.getElementById('dlgStatusNote')?.focus(), 120);
@@ -37,7 +46,10 @@ export async function submitStatusChange() {
   const status = document.getElementById('dlgStatusSel').value;
   const notes  = document.getElementById('dlgStatusNote').value.trim();
 
-  if (!notes) { showToast('Napomena je obavezna.', 'err'); return; }
+  if (!notes) {
+    showToast('Napomena je obavezna pri promeni statusa.', 'err');
+    return;
+  }
 
   const r = await api.equipStatus(equipId, { status, notes });
   if (!r) return;
@@ -48,11 +60,10 @@ export async function submitStatusChange() {
     : `Status promenjen u "${status}".`;
   showToast(msg, 'ok');
 
-  // Osvežiti
   if (state.view === 'equipment' && state.equipId === equipId) {
     import('../equipment.js').then(m => m.refreshDetail());
   } else {
-    import('../app.js').then(m => { m.loadEquipment(); });
-    import('../dashboard.js').then(m => m.renderDashboard());
+    // goDashboard ukljucuje bindFilters
+    import('../app.js').then(m => m.goDashboard());
   }
 }
